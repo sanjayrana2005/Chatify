@@ -29,33 +29,33 @@ export const signup = async (req, res) => {
     // 123456 => $dnjasdkasj_?dmsakmk
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    
-    const newUser = await userModel.create({
-            fullName, email, password: hashedPassword
-        });
 
-        const token = generateToken(newUser._id);
+    const newUser = await User.create({
+      fullName, email, password: hashedPassword
+    });
 
-        res.cookie("talkSpace", token, {
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV === "development" ? false : true
-        });
-        const subject = "Welcome to TalkSpace 🎉"
-        sendWelcomeEmail(email, fullName, subject);
+    const token = generateToken(newUser._id);
 
-        res.status(201).json({
-            message: "Registered successfully",
-            user: {
-                _id: user._id,
-                fullName: user.fullName,
-                email: user.email,
-                profileImage: user.profileImage
-            }
-        });   
+    res.cookie("talkSpace", token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "development"
+    });
+    const subject = "Welcome to TalkSpace 🎉"
+    sendWelcomeEmail(email, fullName, subject);
 
-    
+    res.status(201).json({
+      message: "Registered successfully",
+      user: {
+        _id: newUser._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        profileImage: newUser.profileImage
+      }
+    });
+
+
   } catch (error) {
     console.log("Error in signup controller:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -79,11 +79,11 @@ export const login = async (req, res) => {
 
     const token = generateToken(user._id, res);
     res.cookie("talkSpace", token, {
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            sameSite: "strict",
-            secure: process.env.NODE_ENV === "development" ? false : true
-        });
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "development"
+    });
 
     res.status(200).json({
       _id: user._id,
